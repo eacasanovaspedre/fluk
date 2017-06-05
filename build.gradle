@@ -38,8 +38,39 @@ signing {
     sign configurations.archives
 }
 
+def major = 1
+def minor = 1
+
+static def buildVersion(int major, int minor, boolean isSnapshot) {
+    return "$major.$minor${isSnapshot ? '-SNAPSHOT' : ''}"
+}
+
 group = "com.github.eacasanovaspedre.fluk "
-version = "1.0-SNAPSHOT"
+version = buildVersion(major, minor, true)
+
+def bumpVersion(int minor) {
+    def declaration = "def minor = "
+    def buildFile = new File("build.gradle")
+    def nextMinor = minor
+    buildFile.text.find ~/$declaration($minor)/, { match, minorVersion ->
+        nextMinor = Integer.valueOf((String) minorVersion) + 1
+    }
+    print "Increasing minor version from $minor to $nextMinor..."
+    buildFile.text = buildFile.text.replace("$declaration$minor", "$declaration$nextMinor")
+    println "Done"
+}
+
+task "prepare" doFirst {
+    version = buildVersion(major, minor, false)
+    println "Version is $version"
+}
+
+task "publish" {
+    dependsOn "uploadArchives"
+} doLast {
+    println "Published version $version"
+    bumpVersion(minor)
+}
 
 uploadArchives {
     repositories {
