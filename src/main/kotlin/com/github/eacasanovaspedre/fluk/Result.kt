@@ -1,5 +1,6 @@
 package com.github.eacasanovaspedre.fluk
 
+
 sealed class Result<out TSuccess, out TFailure>
 
 data class Success<out TSuccess, out TFailure>(val value: TSuccess) : Result<TSuccess, TFailure>()
@@ -42,9 +43,7 @@ inline infix fun <TSuccess, TFailure>
         Result<TSuccess, TFailure>.tryToRecover(func: (TFailure) -> Single<TSuccess>?): Result<TSuccess, TFailure> =
         when (this) {
             is Success -> this
-            is Failure -> {
-                func(value)?.value?.asSuccess() ?: this
-            }
+            is Failure -> func(value)?.value?.asSuccess() ?: this
         }
 
 inline fun <TReturn, TSuccess, TFailure>
@@ -54,20 +53,18 @@ inline fun <TReturn, TSuccess, TFailure>
             is Failure -> onFailure(this.value)
         }
 
-fun <TSuccess> Result<TSuccess, *>.orElse(generator: () -> TSuccess): TSuccess = when (this) {
-    is Success -> this.value
-    is Failure -> generator()
-}
+inline fun <TSuccess> Result<TSuccess, *>.orElse(generator: () -> TSuccess): TSuccess = orElse(generator())
 
-fun <TSuccess> Result<TSuccess, *>.orElse(value: TSuccess): TSuccess = when (this) {
-    is Success -> this.value
-    is Failure -> value
-}
+fun <TSuccess> Result<TSuccess, *>.orElse(value: TSuccess): TSuccess = fold(::id, { value })
 
 inline fun <A, B, TSuccessA, TSuccessB, TFailure>
         Pair<A, B>.combineResults(expanderA: (A) -> Result<TSuccessA, TFailure>,
                                   expanderB: (B) -> Result<TSuccessB, TFailure>) =
-        expanderA(first) bind { firstSuccess -> expanderB(second).map { firstSuccess to it } }
+        expanderA(first) bind { firstSuccess ->
+            expanderB(second).map { secondSuccess ->
+                firstSuccess to secondSuccess
+            }
+        }
 
 inline fun <A, TSuccess, TFailure> Pair<A, A>.combineResults(expander: (A) -> Result<TSuccess, TFailure>) =
         combineResults(expander, expander)
