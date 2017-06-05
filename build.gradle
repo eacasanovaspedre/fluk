@@ -41,12 +41,24 @@ signing {
 def major = 1
 def minor = 1
 
-static def buildVersion(int major, int minor, boolean isSnapshot) {
-    return "$major.$minor${isSnapshot ? '-SNAPSHOT' : ''}"
+enum ReleaseType {
+    RELEASE(""),
+    SNAPSHOT("-SNAPSHOT"),
+    BETA("-BETA")
+
+    public final String value;
+
+    ReleaseType(String value) {
+        this.value = value
+    }
+}
+
+static def buildVersion(int major, int minor, ReleaseType releaseType) {
+    return "$major.$minor${releaseType.value}"
 }
 
 group = "com.github.eacasanovaspedre.fluk "
-version = buildVersion(major, minor, true)
+version = buildVersion(major, minor, ReleaseType.SNAPSHOT)
 
 def bumpVersion(int minor) {
     def declaration = "def minor = "
@@ -61,8 +73,11 @@ def bumpVersion(int minor) {
 }
 
 task "prepare" doFirst {
-    version = buildVersion(major, minor, false)
-    println "Version is $version"
+    version = buildVersion(major, minor, ReleaseType.RELEASE)
+}
+
+task "beta" doFirst {
+    version = buildVersion(major, minor, ReleaseType.BETA)
 }
 
 task "publish" {
@@ -126,4 +141,10 @@ dependencies {
 
 task wrapper(type: Wrapper) {
     gradleVersion = "3.4.1"
+}
+
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
 }
