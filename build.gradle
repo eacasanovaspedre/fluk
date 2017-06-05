@@ -39,7 +39,7 @@ signing {
 }
 
 def major = 1
-def minor = 1
+def minor = 2
 
 enum ReleaseType {
     RELEASE(""),
