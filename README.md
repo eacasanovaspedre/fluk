@@ -23,7 +23,7 @@ See discriminated union [Result<'TSuccess,'TFailure>](http://fsharpforfunandprof
 ## The name
 Fluk is called after a project I have for the same purpose in F# named Flux. Flux + Kotlin => Fluk.
 
-See also:
+## See also:
  - http://fsharp.org/
  - http://fsharpforfunandprofit.com/
  - http://fsharpforfunandprofit.com/rop/
